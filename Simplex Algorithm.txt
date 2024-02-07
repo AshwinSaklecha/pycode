@@ -1,0 +1,28 @@
+def pivot(A, b, c, basis, non_basis, pivot_row, pivot_col):
+    basis[pivot_row], non_basis[pivot_col] = non_basis[pivot_col], basis[pivot_row]
+    pivot_val = A[pivot_row][pivot_col]
+    A[pivot_row] = [a / pivot_val for a in A[pivot_row]]
+    b[pivot_row] /= pivot_val
+    for i in range(len(A)):
+        if i != pivot_row:
+            multiplier = A[i][pivot_col]
+            A[i] = [a - multiplier * A[pivot_row][j] for j, a in enumerate(A[i])]
+            b[i] -= multiplier * b[pivot_row]
+    c = [ci - c[pivot_col] * A[pivot_row][j] for j, ci in enumerate(c)]
+    return A, b, c, basis, non_basis
+
+def simplex(A, b, c):
+    m, n = len(A), len(A[0])
+    basis = list(range(n - m, n))
+    non_basis = list(range(n - m))
+    while any(ci > 0 for ci in c):
+        pivot_col = min(non_basis, key=lambda j: c[j])
+        pivot_row = min((i for i in range(m) if A[i][pivot_col] > 0), key=lambda i: b[i] / A[i][pivot_col])
+        if all(A[i][pivot_col] <= 0 for i in range(m)):
+            return "Unbounded"
+        A, b, c, basis, non_basis = pivot(A, b, c, basis, non_basis, pivot_row, pivot_col)
+    solution = [0] * n
+    for i, bi in enumerate(basis):
+        solution[bi] = b[i]
+    return solution
+
